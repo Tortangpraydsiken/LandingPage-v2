@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Explore Mabini — Hidden Gems of Batangas</title>
+  <meta name="description" content="Explore Mabini — curated attractions, interactive map, plan your visit." />
+  <meta name="theme-color" content="#053a64">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Main stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- Small critical inline styles to avoid layout flash for hero + magnifiers -->
+  <style>
+    :root { --hero-mag-top: 60vh; }
+    .magnifier { top: var(--hero-mag-top); }
+    .hero-inner { margin-top: 6vh; } /* push hero content down so nav never overlaps */
+  </style>
+</head>
+<body>
+
+  <!-- =========================
+       Top Navigation
+  ========================== -->
+  <header class="topbar pill-navbar" role="banner" aria-label="Main header">
+  <div class="container nav-wrap">
+    <div class="brand" aria-hidden="false">
+      <div class="logo" aria-hidden="true">MB</div>
+      <div class="brand-text">
+        <div class="site-title">Explore Mabini</div>
+        <div class="site-sub">Nature · Ocean · Local Life</div>
+      </div>
+    </div>
+
+    <button id="navToggle" class="nav-toggle" aria-expanded="false" aria-controls="siteNav" aria-label="Open menu">
+      <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3 7h18M3 12h18M3 17h18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+    </button>
+
+    <nav id="siteNav" class="nav" role="navigation" aria-label="Primary">
+      <ul role="menubar">
+        <li role="none"><a role="menuitem" href="#home" class="pill-link">Home</a></li>
+        <li role="none"><a role="menuitem" href="#attractions" class="pill-link">Attractions</a></li>
+        <li role="none"><a role="menuitem" href="#plan" class="pill-link">Plan Visit</a></li>
+        <li role="none"><a role="menuitem" href="#contact" class="pill-link">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+  <!-- =========================
+       HERO / MAP STAGE
+       (Full-screen immersive banner)
+  ========================== -->
+  <main id="main" tabindex="-1">
+    <section id="home" class="hero" role="region" aria-label="Explore Mabini hero">
+      <!-- decorative background image / map base -->
+      <div class="map-stage" aria-hidden="true">
+        <div id="mapBase" class="map-base" style="background-image:url('bg1.jpg');"></div>
+        <div class="map-overlay" aria-hidden="true"></div>
+        <div class="map-vignette" aria-hidden="true"></div>
+
+        <!-- parallax clouds / decorative -->
+        <div class="map-parallax" aria-hidden="true">
+          <div class="par-cloud" style="left:6%;top:6%;width:420px;height:200px;"></div>
+          <div class="par-cloud" style="right:6%;top:10%;width:360px;height:140px;"></div>
+        </div>
+
+        <!-- soft particles -->
+        <div id="particles" class="particles" aria-hidden="true"></div>
+
+        <!-- draggable magnifiers (moved lower: ~60% from top) -->
+        <div class="magnifier-layer" id="magnifierLayer" aria-hidden="false">
+          <div class="magnifier" id="magA" style="left:12%;top:60vh;width:160px;height:160px;" tabindex="0" role="button" aria-label="Magnifier 1">
+            <div class="lens" id="lensA" aria-hidden="true"></div>
+            <div class="glint" aria-hidden="true"></div>
+            <div class="hint">Drag to explore</div>
+            <div class="handle" aria-hidden="true"></div>
+          </div>
+
+          <div class="magnifier" id="magB" style="left:70%;top:62vh;width:150px;height:150px;" tabindex="0" role="button" aria-label="Magnifier 2">
+            <div class="lens" id="lensB" aria-hidden="true"></div>
+            <div class="glint" aria-hidden="true"></div>
+            <div class="hint">Zoom the map</div>
+            <div class="handle" aria-hidden="true"></div>
+          </div>
+
+          <div class="magnifier" id="magC" style="left:42%;top:58vh;width:140px;height:140px;" tabindex="0" role="button" aria-label="Magnifier 3">
+            <div class="lens" id="lensC" aria-hidden="true"></div>
+            <div class="glint" aria-hidden="true"></div>
+            <div class="hint">Reveal details</div>
+            <div class="handle" aria-hidden="true"></div>
+          </div>
+
+          <div class="magnifier guide" id="magGuide" style="left:50%;top:60vh;width:220px;height:220px;pointer-events:none;">
+            <div class="lens" id="lensGuide" aria-hidden="true"></div>
+            <div class="hint" style="bottom:-48px">Try moving me</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- hero content -->
+      <div class="hero-inner container">
+        <div class="headline-wrap">
+          <h1 class="headline">Explore the Hidden Gems of <span class="accent">Mabini, Batangas</span></h1>
+          <div class="headline-wave" aria-hidden="true"></div>
+        </div>
+
+        <p class="sub">Island-hopping, snorkeling, sunrise hikes and quiet bays — coastal culture, warm people, crystal waters.</p>
+
+        <div class="hero-actions">
+          <a class="btn cta-primary" href="#attractions">Discover Spots</a>
+          <a class="btn cta-ghost" href="#plan">Plan Your Visit</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================
+         ATTRACTIONS CAROUSEL
+    ========================== -->
+    <section id="attractions" class="section featured container-section" aria-labelledby="attractionsTitle">
+  <div class="section-head">
+    <h2 id="attractionsTitle">Featured Mabini Spots</h2>
+    <p class="lead">Hand-picked highlights — islands, viewpoints, and beaches to inspire your trip.</p>
+  </div>
+
+  <div class="carousel-wrap" role="region" aria-label="Attractions carousel">
+</button>
+    <button class="carousel-nav modern prev" aria-label="Previous slide">
+  <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </svg>
+</button>
+
+<button class="carousel-nav modern next" aria-label="Next slide">
+  <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </svg>
+</button>
+
+      <div class="carousel-track" id="carouselTrack">
+
+        <!-- Slide template -->
+        <article class="slide">
+          <div class="media">
+            <img src="Anilao.jpg" alt="Anilao">
+          </div>
+          <div class="card-body">
+            <h3>Anilao</h3>
+            <p class="desc">Clear waters and vibrant marine life — perfect for snorkeling and diving.</p>
+            <ul class="card-details">
+              <li>Snorkeling & Diving</li>
+              <li>Boat rentals available</li>
+              <li>Best time: Nov–May</li>
+            </ul>
+            <div class="card-actions">
+              <a class="btn small" href="https://www.google.com/maps/search/Anilao+Mabini+Batangas" target="_blank" rel="noopener">Open Map</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="slide">
+          <div class="media">
+            <img src="Gulugod.jpg" alt="Mt. Gulugod Baboy">
+          </div>
+          <div class="card-body">
+            <h3>Mt. Gulugod Baboy</h3>
+            <p class="desc">Short sunrise hike with panoramic views of islands and the sea.</p>
+            <ul class="card-details">
+              <li>Hiking & Sunrise View</li>
+              <li>Difficulty: Easy</li>
+              <li>Bring water & snacks</li>
+            </ul>
+            <div class="card-actions">
+              <a class="btn small" href="https://www.google.com/maps/search/Mt+Gulugod+Baboy+Mabini+Batangas" target="_blank" rel="noopener">Open Map</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="slide">
+          <div class="media">
+            <img src="Camp-Netanya.jpg" alt="Camp Netanya">
+          </div>
+          <div class="card-body">
+            <h3>Camp Netanya</h3>
+            <p class="desc">Chill resort with photogenic architecture and ocean views.</p>
+            <ul class="card-details">
+              <li>Accommodation</li>
+              <li>Beach access</li>
+              <li>Restaurants on site</li>
+            </ul>
+            <div class="card-actions">
+              <a class="btn small" href="https://www.google.com/maps/search/Camp+Netanya+Mabini+Batangas" target="_blank" rel="noopener">Open Map</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="slide">
+          <div class="media">
+            <img src="Awari.jpg" alt="Awari Bay">
+          </div>
+          <div class="card-body">
+            <h3>Awari Bay</h3>
+            <p class="desc">A calm and secluded bay ideal for relaxing day trips and marine life spotting.</p>
+            <ul class="card-details">
+              <li>Kayaking & Swimming</li>
+              <li>Quiet & Secluded</li>
+              <li>Bring picnic essentials</li>
+            </ul>
+            <div class="card-actions">
+              <a class="btn small" href="https://www.google.com/maps/search/Awari+Bay+Mabini+Batangas" target="_blank" rel="noopener">Open Map</a>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </div>
+
+    <button class="carousel-nav next" aria-label="Next slide">
+      <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+    </button>
+  </div>
+</section>
+
+    <!-- =========================
+         PLAN VISIT (CTA)
+    ========================== -->
+    <section id="plan" class="section plan-section container-section" aria-labelledby="planTitle">
+      <div class="plan-inner container">
+        <div class="plan-card slide-in">
+          <h2 id="planTitle">Plan Your Visit</h2>
+          <p class="lead">Choose dates, arrange transfers, and pick activities — island hopping, snorkeling or mountain hikes.</p>
+          <div style="margin-top:14px">
+            <a class="btn cta-primary" href="#contact">Start Planning</a>
+          </div>
+        </div>
+
+        <aside class="plan-side slide-in" aria-hidden="false">
+          <h4>Quick Tips</h4>
+          <ul>
+            <li>Best time: November–May</li>
+            <li>Bring reef-safe sunscreen</li>
+            <li>Book boat transfers in advance</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <!-- =========================
+         MAP (Embedded Google Map)
+    ========================== -->
+    <section class="section map-section container-section" aria-label="Map">
+      <div class="section-head">
+        <h2>Where is Mabini?</h2>
+        <p class="lead">Quick map preview — open full Google Maps for navigation.</p>
+      </div>
+
+      <div class="map-wrap container">
+        <div class="map-frame">
+          <!-- Google Maps iframe (Mabini, Batangas) -->
+          <iframe
+            title="Mabini, Batangas map"
+            src="https://www.google.com/maps?q=Mabini%2C%20Batangas&output=embed"
+            loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================
+         CONTACT + FOOTER
+    ========================== -->
+    <footer id="contact" class="site-footer" role="contentinfo">
+      <div class="container footer-grid">
+        <div class="footer-info">
+          <div class="logo small">MB</div>
+          <p class="muted">Mabini Tourism Office</p>
+          <p class="muted">Email: <a href="mailto:info@exploremabini.example">info@exploremabini.example</a></p>
+          <p class="muted">Phone: <a href="tel:+639001112233">+63 900 111 2233</a></p>
+        </div>
+
+        <div class="footer-links">
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="#attractions">Attractions</a></li>
+            <li><a href="#plan">Plan Visit</a></li>
+            <li><a href="#home">Home</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-social">
+          <h4>Follow Us</h4>
+          <div class="socials" role="navigation" aria-label="Social links">
+            <!-- Facebook -->
+            <a href="#" aria-label="Facebook" class="social" title="Facebook">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M22 12.07C22 6.48 17.52 2 12 2S2 6.48 2 12.07c0 4.84 3.44 8.85 7.94 9.77v-6.92H7.9v-2.85h2.04V9.57c0-2.02 1.2-3.13 3.04-3.13.88 0 1.8.16 1.8.16v1.98h-1.02c-1.01 0-1.32.63-1.32 1.28v1.53h2.24l-.36 2.85h-1.88v6.92C18.56 20.92 22 16.91 22 12.07z" fill="currentColor"/></svg>
+            </a>
+            <!-- Instagram -->
+            <a href="#" aria-label="Instagram" class="social" title="Instagram">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 2h10a5 5 0 015 5v10a5 5 0 01-5 5H7a5 5 0 01-5-5V7a5 5 0 015-5zm5 6.38A4.62 4.62 0 1016.62 13 4.62 4.62 0 0012 8.38zm6.5-3.25a1.06 1.06 0 11-1.06-1.06 1.06 1.06 0 011.06 1.06z" fill="currentColor"/></svg>
+            </a>
+            <!-- TikTok -->
+            <a href="#" aria-label="TikTok" class="social" title="TikTok">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M16 3h2.4v4.9C19.1 8 18 8.3 17 8.3 15.8 8.3 14.6 8 13.5 7.4V9.2c0 .1-.1.2-.2.2-1.3.5-2.6.7-4 .6v1.9c1.7.1 3.2-.1 4.6-.8v6.6c-1.6.8-3.4 1.2-5.3 1.2A8.8 8.8 0 113.6 10c.2 0 .4 0 .6.1v-2.7C4.2 7.3 3.4 8 2.5 8.3 3 6.4 4.5 4.9 6.4 4.3 7.5 4 8.6 3.9 9.7 4.2V3h6.3V6.1c.4.1.8.1 1.2.1.2 0 .5 0 .7-.1V3z" fill="currentColor"/></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>© 2025 Explore Mabini · Built with care</p>
+      </div>
+    </footer>
+
+  </main>
+
+  <!-- =========================
+       Modal (details) — hidden by default
+  ========================== -->
+  <div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-hidden="true">
+    <div class="modal" role="document" aria-labelledby="modalTitle">
+      <div class="modal-media" id="modalSlide" aria-hidden="true"></div>
+      <div class="modal-content">
+        <button class="modal-close" aria-label="Close details">✕</button>
+        <h3 id="modalTitle">Title</h3>
+        <p id="modalText">Short description will appear here.</p>
+        <div class="modal-actions">
+          <a class="btn" id="modalMap" href="#" target="_blank" rel="noopener">Open in Maps</a>
+          <button class="btn" id="modalNext">Next</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom cursor pin (JS/ CSS will handle visibility & smoothing) -->
+  <div id="cursorPin" class="cursor-pin" aria-hidden="true"></div>
+
+  <!-- Aria live region -->
+  <div class="visually-hidden" aria-live="polite" id="ariaStatus"></div>
+
+  <!-- noscript fallback -->
+  <noscript>
+    <style>
+      .hero { background-position: center; }
+      .magnifier-layer { display:none; }
+    </style>
+    <div class="noscript-warning">This page works best with JavaScript enabled — please enable JS for full interaction.</div>
+  </noscript>
+
+  <!-- Main JavaScript — will be provided separately -->
+  <script src="scripts.js" defer></script>
+</body>
+</html>
