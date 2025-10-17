@@ -1,50 +1,238 @@
-// Mobile nav toggle
+// =========================
+// MOBILE NAVIGATION TOGGLE
+// =========================
 const navToggle = document.getElementById("navToggle");
 const navMenu = document.querySelector(".pill-navbar .nav ul");
 
-navToggle.addEventListener("click", () => {
-  const expanded = navToggle.getAttribute("aria-expanded") === "true" || false;
-  navToggle.setAttribute("aria-expanded", !expanded);
-  navMenu.classList.toggle("active");
-});
-
-// Smooth scroll
-document.querySelectorAll(".pill-link").forEach(link => {
-  link.addEventListener("click", e => {
-    e.preventDefault();
-    const target = document.querySelector(link.getAttribute("href"));
-    if (target) {
-      window.scrollTo({
-        top: target.offsetTop - 80,
-        behavior: "smooth"
-      });
-    }
-    // Close on mobile after click
-    navMenu.classList.remove("active");
-    navToggle.setAttribute("aria-expanded", "false");
+if (navToggle && navMenu) {
+  navToggle.addEventListener("click", () => {
+    const expanded = navToggle.getAttribute("aria-expanded") === "true" || false;
+    navToggle.setAttribute("aria-expanded", !expanded);
+    navMenu.classList.toggle("active");
   });
-});
+}
 
-/* =========================
-   Utility helpers
-   ========================= */
+// =========================
+// UTILITY FUNCTIONS
+// =========================
 const $ = sel => document.querySelector(sel);
 const $$ = sel => Array.from(document.querySelectorAll(sel));
 const isReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-/* quick safe getter */
-function safeGet(id) { return document.getElementById(id) || document.querySelector(id); }
+function safeGet(id) { 
+  return document.getElementById(id) || document.querySelector(id); 
+}
 
-/* polite aria announcer */
 const ariaStatus = safeGet('#ariaStatus');
 
-/* small helper to set ARIA messages */
-function announce(text) { if (ariaStatus) { ariaStatus.textContent = text; } }
+function announce(text) { 
+  if (ariaStatus) { 
+    ariaStatus.textContent = text; 
+  } 
+}
 
-/* =========================
-   SPLASH / FIRST IMPRESSION
-   subtle overlay + wave/fade remove
-   ========================= */
+// =========================
+// MAP LOCATION FUNCTIONALITY
+// =========================
+(function mapLocations() {
+  // Exact coordinates for each tourist spot
+  const spotCoordinates = {
+    'Anilao': { 
+      lat: 13.7226, 
+      lng: 120.8994,
+      description: 'Anilao is known for its clear waters and vibrant marine life, making it perfect for snorkeling and diving. It features beautiful coral reefs and diverse aquatic species.'
+    },
+    'Mt. Gulugod Baboy': { 
+      lat: 13.6936, 
+      lng: 120.9050,
+      description: 'Mt. Gulugod Baboy offers a relatively easy hike with breathtaking panoramic views of islands and the sea. Perfect for sunrise viewing and photography.'
+    },
+    'Camp Netanya': { 
+      lat: 13.7167, 
+      lng: 120.8833,
+      description: 'Camp Netanya is a beautiful resort with Greek-inspired architecture, offering stunning ocean views, comfortable accommodations, and various water activities.'
+    },
+    'Awari Bay': { 
+      lat: 13.7081, 
+      lng: 120.8917,
+      description: 'Awari Bay is a calm and secluded bay ideal for relaxing day trips, kayaking, and marine life spotting. Perfect for those seeking tranquility.'
+    }
+  };
+
+  const locationModal = safeGet('#locationModal');
+  const locationTitle = safeGet('#locationTitle');
+  const locationDescription = safeGet('#locationDescription');
+  const locationMap = safeGet('#locationMap');
+  const getDirectionsBtn = safeGet('#getDirections');
+  const closeLocationBtn = safeGet('#closeLocation');
+  const locationCloseBtn = $('.location-close');
+
+  let currentLocation = '';
+
+  // Function to open Google Maps with exact coordinates
+  function openExactLocation(spotName) {
+    const coords = spotCoordinates[spotName];
+    
+    if (coords) {
+      // Open Google Maps with exact coordinates
+      const url = `https://www.google.com/maps/@${coords.lat},${coords.lng},15z?entry=ttu`;
+      window.open(url, '_blank', 'noopener,noreferrer');
+      
+      // Show notification
+      showMapNotification(`Opening ${spotName} location in Google Maps`);
+    } else {
+      // Fallback to search if coordinates not found
+      const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(spotName + ' Mabini Batangas')}`;
+      window.open(searchUrl, '_blank', 'noopener,noreferrer');
+    }
+  }
+
+  // Function to show location in modal with embedded map
+  function showLocationModal(spotName) {
+    const coords = spotCoordinates[spotName];
+    
+    if (!coords) {
+      openExactLocation(spotName);
+      return;
+    }
+
+    currentLocation = spotName;
+    locationTitle.textContent = spotName;
+    locationDescription.textContent = coords.description;
+
+    // Create embedded map without API key
+    const mapUrl = `https://maps.google.com/maps?q=${coords.lat},${coords.lng}&z=15&output=embed`;
+    
+    locationMap.innerHTML = `
+      <iframe 
+        src="${mapUrl}"
+        width="100%" 
+        height="100%" 
+        style="border:0;" 
+        allowfullscreen="" 
+        loading="lazy" 
+        referrerpolicy="no-referrer-when-downgrade"
+        title="${spotName} location map">
+      </iframe>
+    `;
+
+    // Show modal
+    locationModal.style.display = 'block';
+    announce(`Showing ${spotName} location on map`);
+  }
+
+  // Get directions function
+  function getDirections() {
+    if (currentLocation && spotCoordinates[currentLocation]) {
+      const coords = spotCoordinates[currentLocation];
+      // Use the more reliable Google Maps directions URL
+      const url = `https://www.google.com/maps/dir//${coords.lat},${coords.lng}/@${coords.lat},${coords.lng},15z`;
+      window.open(url, '_blank', 'noopener,noreferrer');
+      announce(`Getting directions to ${currentLocation}`);
+    }
+  }
+
+  // Close modal function
+  function closeLocationModal() {
+    locationModal.style.display = 'none';
+    announce('Location map closed');
+  }
+
+  // Event listeners for map buttons
+  $$('.open-map-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const location = btn.getAttribute('data-location');
+      showLocationModal(location);
+    });
+  });
+
+  // Also add click handlers for the old anchor tags as fallback
+  $$('a.btn.small[href*="google.com/maps"]').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      // Extract location name from the card
+      const card = link.closest('.slide');
+      const location = card ? card.getAttribute('data-location') : '';
+      if (location) {
+        showLocationModal(location);
+      } else {
+        // Fallback: open the original link
+        window.open(link.href, '_blank', 'noopener,noreferrer');
+      }
+    });
+  });
+
+  // Event listeners for modal controls
+  if (getDirectionsBtn) {
+    getDirectionsBtn.addEventListener('click', getDirections);
+  }
+
+  if (closeLocationBtn) {
+    closeLocationBtn.addEventListener('click', closeLocationModal);
+  }
+
+  if (locationCloseBtn) {
+    locationCloseBtn.addEventListener('click', closeLocationModal);
+  }
+
+  // Close modal when clicking outside
+  window.addEventListener('click', (e) => {
+    if (e.target === locationModal) {
+      closeLocationModal();
+    }
+  });
+
+  // Close modal with Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && locationModal.style.display === 'block') {
+      closeLocationModal();
+    }
+  });
+
+  // Utility function to show notifications
+  function showMapNotification(message) {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+      position: fixed;
+      top: 100px;
+      right: 20px;
+      background: var(--primary);
+      color: white;
+      padding: 12px 20px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-strong);
+      z-index: 2002;
+      font-size: 0.9rem;
+      transform: translateX(120%);
+      transition: transform 0.3s ease;
+    `;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+
+    // Animate in
+    setTimeout(() => {
+      notification.style.transform = 'translateX(0)';
+    }, 100);
+
+    // Remove after 3 seconds
+    setTimeout(() => {
+      notification.style.transform = 'translateX(120%)';
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification);
+        }
+      }, 300);
+    }, 3000);
+  }
+
+  // Make function available globally for fallback
+  window.openExactLocation = openExactLocation;
+})();
+
+// =========================
+// SPLASH SCREEN
+// =========================
 (function splashReveal() {
   try {
     const splash = document.createElement('div');
@@ -74,9 +262,7 @@ function announce(text) { if (ariaStatus) { ariaStatus.textContent = text; } }
     `;
     document.documentElement.appendChild(splash);
 
-    // Let main content load then fade splash.
     window.addEventListener('load', () => {
-      // If reduced motion, skip the long animation
       const delay = isReducedMotion ? 250 : 900;
       setTimeout(() => {
         splash.style.opacity = 0;
@@ -88,14 +274,13 @@ function announce(text) { if (ariaStatus) { ariaStatus.textContent = text; } }
   }
 })();
 
-/* =========================
-   CUSTOM PIN CURSOR
-   ========================= */
+// =========================
+// CUSTOM CURSOR
+// =========================
 (function pinCursor() {
   const pin = safeGet('#cursorPin');
   if (!pin) return;
 
-  // style the pin via JS to keep CSS minimal dependency
   Object.assign(pin.style, {
     position: 'fixed',
     left: '0px',
@@ -117,14 +302,13 @@ function announce(text) { if (ariaStatus) { ariaStatus.textContent = text; } }
       </svg>")`,
     backgroundRepeat: 'no-repeat',
     backgroundSize: 'contain',
-    opacity: 0 // will fade in on first use
+    opacity: 0
   });
 
   let mouseX = window.innerWidth / 2;
   let mouseY = window.innerHeight / 2;
   let x = mouseX, y = mouseY;
 
-  // easing follow loop
   function loop() {
     x += (mouseX - x) * 0.16;
     y += (mouseY - y) * 0.16;
@@ -134,15 +318,13 @@ function announce(text) { if (ariaStatus) { ariaStatus.textContent = text; } }
   }
   loop();
 
-  // track mouse; show pin when in document
   window.addEventListener('mousemove', (e) => {
     mouseX = e.clientX;
     mouseY = e.clientY;
     pin.style.opacity = 1;
   });
 
-  // hover states on interactive elements
-  const hoverTargets = ['a', 'button', '.slide', '.carousel-nav', '.magnifier', '.btn'];
+  const hoverTargets = ['a', 'button', '.slide', '.carousel-nav', '.magnifier', '.btn', '.auth-btn', '.sidebar-link', '.activity-card', '.accommodation-card', '.open-map-btn'];
   const hoverEls = hoverTargets.map(sel => Array.from(document.querySelectorAll(sel))).flat();
 
   hoverEls.forEach(el => {
@@ -156,23 +338,26 @@ function announce(text) { if (ariaStatus) { ariaStatus.textContent = text; } }
     });
   });
 
-  // hide on blur/leave window
   window.addEventListener('mouseout', (e) => {
     if (!e.relatedTarget) pin.style.opacity = 0;
   });
+
+  if ('ontouchstart' in window || navigator.maxTouchPoints) {
+    pin.style.display = 'none';
+  }
 })();
 
-/* =========================
-   SCROLL REVEAL (IntersectionObserver)
-   Add classes: reveal-visible
-   Support data attributes: data-reveal="fade-up|fade-left|fade-right|zoom-in"
-   ========================= */
+// =========================
+// SCROLL REVEAL ANIMATIONS
+// =========================
 (function scrollReveal() {
-  const els = $$('[data-scroll], .slide-in, .headline, .plan-card, .plan-side, .section-head');
+  const els = $$('[data-scroll], .slide-in, .headline, .plan-card, .plan-side, .section-head, .reveal-pre');
   if (!els.length) return;
 
   const options = {
-    root: null, rootMargin: '0px 0px -10% 0px', threshold: 0.12
+    root: null, 
+    rootMargin: '0px 0px -10% 0px', 
+    threshold: 0.12
   };
 
   const io = new IntersectionObserver((entries, obs) => {
@@ -186,46 +371,44 @@ function announce(text) { if (ariaStatus) { ariaStatus.textContent = text; } }
   }, options);
 
   els.forEach(el => {
-    // initial state: add appropriate class if not present
     const mode = el.dataset.scroll || el.getAttribute('data-reveal') || (el.classList.contains('slide-in') ? 'fade-up' : 'fade-up');
-    if (!el.classList.contains('reveal-pre')) el.classList.add('reveal-pre', `reveal-${mode}`);
+    if (!el.classList.contains('reveal-pre')) {
+      el.classList.add('reveal-pre', `reveal-${mode}`);
+    }
     io.observe(el);
   });
 })();
 
-/* =========================
-   PARALLAX: decorative clouds & subtle hero base shift
-   ========================= */
+// =========================
+// PARALLAX EFFECTS
+// =========================
 (function parallax() {
   const parClouds = $$('.par-cloud');
   const mapBase = safeGet('#mapBase');
 
   function onPointerMove(e) {
+    if (isReducedMotion) return;
+    
     const { innerWidth: W, innerHeight: H } = window;
     const x = (e.clientX / W) - 0.5;
     const y = (e.clientY / H) - 0.5;
 
-    // base subtle shift
     if (mapBase) {
       mapBase.style.transform = `translate3d(${x * 8}px, ${y * 6}px, 0) scale(1.03)`;
     }
 
-    // clouds parallax per index
     parClouds.forEach((c, i) => {
       const depth = 6 + i * 3;
       c.style.transform = `translate3d(${x * depth}px, ${y * (depth/2)}px, 0)`;
     });
   }
 
-  window.addEventListener('mousemove', (e) => {
-    if (!isReducedMotion) onPointerMove(e);
-  });
+  window.addEventListener('mousemove', onPointerMove);
 })();
 
-/* =========================
-   MAGNIFIER LENS LOGIC (update background position)
-   draggable by pointer events + keyboard nudges + persistence
-   ========================= */
+// =========================
+// MAGNIFIER FUNCTIONALITY
+// =========================
 (function magnifiers() {
   const mapBase = safeGet('#mapBase');
   if (!mapBase) return;
@@ -233,15 +416,15 @@ function announce(text) { if (ariaStatus) { ariaStatus.textContent = text; } }
   const magnifiers = $$('.magnifier');
   if (!magnifiers.length) return;
 
-  // initialize lens background to mapBase image if present
   const baseBg = getComputedStyle(mapBase).backgroundImage || '';
   $$('#lensA, #lensB, #lensC, #lensGuide').forEach(lens => {
-    if (lens) lens.style.backgroundImage = baseBg;
-    if (lens) lens.style.backgroundSize = '260% 260%';
-    if (lens) lens.style.backgroundPosition = 'center';
+    if (lens) {
+      lens.style.backgroundImage = baseBg;
+      lens.style.backgroundSize = '260% 260%';
+      lens.style.backgroundPosition = 'center';
+    }
   });
 
-  // helper to update lens based on mag element center relative to mapBase
   function updateLensFor(mag, lens) {
     if (!mag || !lens) return;
     const rectMap = mapBase.getBoundingClientRect();
@@ -250,18 +433,15 @@ function announce(text) { if (ariaStatus) { ariaStatus.textContent = text; } }
     const cY = rectMag.top + rectMag.height / 2;
     const px = ((cX - rectMap.left) / rectMap.width) * 100;
     const py = ((cY - rectMap.top) / rectMap.height) * 100;
-    // invert for background pos to give "zoom" effect
     const bgX = 100 - px;
     const bgY = 100 - py;
     lens.style.backgroundPosition = `${bgX}% ${bgY}%`;
-    // slight micro-drift for 3D effect
     lens.style.transform = `translate3d(${(px - 50)/40}px, ${(py - 50)/40}px, 0) scale(1)`;
   }
 
-  // make a mag draggable with pointer events and store in localStorage
   function makeDraggable(mag, lens, key) {
     if (!mag) return;
-    // load saved position
+
     try {
       const saved = JSON.parse(localStorage.getItem(key) || 'null');
       if (saved && saved.left && saved.top) {
@@ -274,7 +454,6 @@ function announce(text) { if (ariaStatus) { ariaStatus.textContent = text; } }
     let startX = 0, startY = 0, origLeft = 0, origTop = 0;
 
     function onPointerDown(e) {
-      // allow only primary pointer
       if (e.button !== undefined && e.button !== 0) return;
       dragging = true;
       mag.classList.add('active');
@@ -293,7 +472,6 @@ function announce(text) { if (ariaStatus) { ariaStatus.textContent = text; } }
       const dy = e.clientY - startY;
       const newLeft = origLeft + dx;
       const newTop = origTop + dy;
-      // clamp within viewport with margin
       const margin = 8;
       const w = window.innerWidth;
       const h = window.innerHeight;
@@ -308,18 +486,15 @@ function announce(text) { if (ariaStatus) { ariaStatus.textContent = text; } }
       if (!dragging) return;
       dragging = false;
       mag.classList.remove('active');
-      // persist
       try {
         localStorage.setItem(key, JSON.stringify({ left: mag.style.left, top: mag.style.top }));
-      } catch (err) { /* localStorage may be disabled */ }
+      } catch (err) { /* ignore */ }
     }
 
-    // pointer events for mouse + touch
     mag.addEventListener('pointerdown', onPointerDown);
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
 
-    // keyboard nudges
     mag.addEventListener('keydown', (ev) => {
       const step = ev.shiftKey ? 28 : 8;
       const rect = mag.getBoundingClientRect();
@@ -328,89 +503,98 @@ function announce(text) { if (ariaStatus) { ariaStatus.textContent = text; } }
       if (ev.key === 'ArrowLeft') { mag.style.left = rect.left - step + 'px'; ev.preventDefault(); }
       if (ev.key === 'ArrowRight') { mag.style.left = rect.left + step + 'px'; ev.preventDefault(); }
       updateLensFor(mag, lens);
-      try { localStorage.setItem(key, JSON.stringify({ left: mag.style.left, top: mag.style.top })); } catch (err) {}
+      try { 
+        localStorage.setItem(key, JSON.stringify({ left: mag.style.left, top: mag.style.top })); 
+      } catch (err) {}
     });
 
-    // initial lens update
     setTimeout(() => updateLensFor(mag, lens), 80);
-
-    // periodic refresh (in case page resizes)
     setInterval(() => { if (!dragging) updateLensFor(mag, lens); }, 400);
   }
 
-  // attach to known elements (ids from HTML)
   const magA = $('#magA'), magB = $('#magB'), magC = $('#magC'), magGuide = $('#magGuide');
   makeDraggable(magA, $('#lensA'), 'pos_magA');
   makeDraggable(magB, $('#lensB'), 'pos_magB');
   makeDraggable(magC, $('#lensC'), 'pos_magC');
 
-  // guide lens: non-draggable but update tie
-  if (magGuide) setInterval(() => updateLensFor(magGuide, $('#lensGuide')), 360);
+  if (magGuide) {
+    setInterval(() => updateLensFor(magGuide, $('#lensGuide')), 360);
+  }
 })();
 
-/* =========================
-   CAROUSEL (drag/swipe, buttons, autoplay, pause)
-   Assumes:
-   - .carousel-track exists and contains .slide elements
-   - .carousel-nav.next / .carousel-nav.prev are present
-   ========================= */
+// =========================
+// CAROUSEL FUNCTIONALITY
+// =========================
 (function carousel() {
-  const track = safeGet('#carouselTrack') || safeGet('#carousel .carousel-track') || safeGet('#carouselTrack');
+  const track = safeGet('#carouselTrack');
   const prevBtn = document.querySelector('.carousel-nav.prev');
   const nextBtn = document.querySelector('.carousel-nav.next');
   const slides = track ? Array.from(track.children) : [];
+  
   if (!track || !slides.length) return;
 
-  // We'll implement a percent-based translateX system so track width responsive
-  let index = 0;
+  let currentIndex = 0;
   let autoTimer = null;
   let isDragging = false;
   let dragStartX = 0, dragCurrentX = 0, trackStartX = 0;
   const autoplayDelay = 4500;
   const transitionMs = 420;
 
-  // set initial layout (make track a flex row)
   track.style.display = 'flex';
   track.style.gap = '1rem';
   track.style.transition = `transform ${transitionMs}ms cubic-bezier(.16,.84,.24,1)`;
-  slides.forEach(s => { s.style.minWidth = '320px'; s.style.flex = '0 0 auto'; });
+  slides.forEach(s => { 
+    s.style.minWidth = '320px'; 
+    s.style.flex = '0 0 auto'; 
+  });
 
-  // compute visible amount (we will use index and calculated offset)
-  function update() {
-    // compute the width of one slide incl gap
+  function updateCarousel() {
     const slideWidth = slides[0].getBoundingClientRect().width + parseFloat(getComputedStyle(track).gap || 0);
-    const offset = index * slideWidth;
+    const offset = currentIndex * slideWidth;
     track.style.transform = `translateX(-${offset}px)`;
-    // aria
-    slides.forEach((s, i) => s.setAttribute('aria-hidden', i !== index));
+    slides.forEach((s, i) => s.setAttribute('aria-hidden', i !== currentIndex));
   }
 
-  // next/prev
-  function next() { index = Math.min(index + 1, slides.length - 1); update(); }
-  function prev() { index = Math.max(index - 1, 0); update(); }
+  function nextSlide() { 
+    currentIndex = (currentIndex + 1) % slides.length; 
+    updateCarousel(); 
+  }
 
-  nextBtn && nextBtn.addEventListener('click', () => { next(); resetAutoplay(); });
-  prevBtn && prevBtn.addEventListener('click', () => { prev(); resetAutoplay(); });
+  function prevSlide() { 
+    currentIndex = (currentIndex - 1 + slides.length) % slides.length; 
+    updateCarousel(); 
+  }
 
-  // autoplay
+  if (nextBtn) nextBtn.addEventListener('click', () => { nextSlide(); resetAutoplay(); });
+  if (prevBtn) prevBtn.addEventListener('click', () => { prevSlide(); resetAutoplay(); });
+
   function startAutoplay() {
     stopAutoplay();
     autoTimer = setInterval(() => {
-      index = (index + 1) % slides.length;
-      update();
+      nextSlide();
     }, autoplayDelay);
   }
-  function stopAutoplay() { if (autoTimer) { clearInterval(autoTimer); autoTimer = null; } }
-  function resetAutoplay() { stopAutoplay(); startAutoplay(); }
 
-  // pause on hover/focus
+  function stopAutoplay() { 
+    if (autoTimer) { 
+      clearInterval(autoTimer); 
+      autoTimer = null; 
+    } 
+  }
+
+  function resetAutoplay() { 
+    stopAutoplay(); 
+    startAutoplay(); 
+  }
+
   const carouselWrap = track.parentElement;
-  carouselWrap.addEventListener('mouseenter', stopAutoplay);
-  carouselWrap.addEventListener('mouseleave', startAutoplay);
-  carouselWrap.addEventListener('focusin', stopAutoplay);
-  carouselWrap.addEventListener('focusout', startAutoplay);
+  if (carouselWrap) {
+    carouselWrap.addEventListener('mouseenter', stopAutoplay);
+    carouselWrap.addEventListener('mouseleave', startAutoplay);
+    carouselWrap.addEventListener('focusin', stopAutoplay);
+    carouselWrap.addEventListener('focusout', startAutoplay);
+  }
 
-  // drag to swipe (pointer events)
   track.addEventListener('pointerdown', (e) => {
     isDragging = true;
     dragStartX = e.clientX;
@@ -430,44 +614,209 @@ function announce(text) { if (ariaStatus) { ariaStatus.textContent = text; } }
     if (!isDragging) return;
     isDragging = false;
     track.style.transition = `transform ${transitionMs}ms cubic-bezier(.16,.84,.24,1)`;
-    // determine swipe direction
+    
     const dx = (e.clientX || dragCurrentX) - dragStartX;
     const threshold = 60;
+    
     if (dx < -threshold) {
-      // swiped left (go next)
-      index = Math.min(index + 1, slides.length - 1);
+      nextSlide();
     } else if (dx > threshold) {
-      index = Math.max(index - 1, 0);
+      prevSlide();
     } else {
-      // minor drag -> snap to nearest
-      // compute current offset and snap
       const slideWidth = slides[0].getBoundingClientRect().width + parseFloat(getComputedStyle(track).gap || 0);
       const currentOffset = parseFloat(track.style.transform.replace(/translateX\(-?([0-9.]+)px\)/, '$1')) || 0;
-      index = Math.round(currentOffset / slideWidth);
-      index = Math.min(Math.max(index, 0), slides.length - 1);
+      currentIndex = Math.round(currentOffset / slideWidth);
+      currentIndex = Math.min(Math.max(currentIndex, 0), slides.length - 1);
+      updateCarousel();
     }
-    update();
     resetAutoplay();
   });
 
-  // responsive: recalc on resize
-  window.addEventListener('resize', () => setTimeout(update, 120));
+  window.addEventListener('resize', () => setTimeout(updateCarousel, 120));
 
-  // start
-  update();
+  updateCarousel();
   startAutoplay();
 })();
 
-/* =========================
-   MODAL (accessible) system
-   - open when .btn[data-open] clicked
-   - close on backdrop click, Esc
-   - Prev/Next navigation via keyboard or modal button
-   - focus trap
-   ========================= */
+// =========================
+// SIDEBAR FUNCTIONALITY
+// =========================
+(function sidebar() {
+  const sidebar = safeGet('#sidebar');
+  const sidebarToggle = safeGet('#sidebarToggle');
+  const sidebarClose = safeGet('#sidebarClose');
+
+  if (!sidebar || !sidebarToggle) return;
+
+  sidebarToggle.addEventListener('click', () => {
+    sidebar.classList.toggle('active');
+  });
+
+  if (sidebarClose) {
+    sidebarClose.addEventListener('click', () => {
+      sidebar.classList.remove('active');
+    });
+  }
+
+  document.addEventListener('click', (e) => {
+    if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target) && sidebar.classList.contains('active')) {
+      sidebar.classList.remove('active');
+    }
+  });
+
+  $$('.sidebar-link').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      
+      $$('.sidebar-link').forEach(l => l.classList.remove('active'));
+      link.classList.add('active');
+      
+      const targetId = link.getAttribute('href').substring(1);
+      const targetSection = document.getElementById(targetId);
+      
+      if (targetSection) {
+        window.scrollTo({
+          top: targetSection.offsetTop - 80,
+          behavior: 'smooth'
+        });
+      }
+      
+      if (window.innerWidth <= 768) {
+        sidebar.classList.remove('active');
+      }
+    });
+  });
+})();
+
+// =========================
+// AUTHENTICATION SYSTEM
+// =========================
+(function authentication() {
+  const loginModal = safeGet('loginModal');
+  const signupModal = safeGet('signupModal');
+
+  if (!loginModal || !signupModal) return;
+
+  function openLogin() {
+    loginModal.style.display = 'block';
+    signupModal.style.display = 'none';
+  }
+
+  function openSignup() {
+    signupModal.style.display = 'block';
+    loginModal.style.display = 'none';
+  }
+
+  function closeAuthModal() {
+    loginModal.style.display = 'none';
+    signupModal.style.display = 'none';
+  }
+
+  function switchToSignup() {
+    openSignup();
+  }
+
+  function switchToLogin() {
+    openLogin();
+  }
+
+  window.openLogin = openLogin;
+  window.openSignup = openSignup;
+  window.closeAuthModal = closeAuthModal;
+  window.switchToSignup = switchToSignup;
+  window.switchToLogin = switchToLogin;
+
+  window.addEventListener('click', (e) => {
+    if (e.target === loginModal || e.target === signupModal) {
+      closeAuthModal();
+    }
+  });
+
+  $$('.auth-form').forEach(form => {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      if (form.parentElement.id === 'loginModal') {
+        const email = $('#loginEmail').value;
+        const password = $('#loginPassword').value;
+        
+        if (email && password) {
+          alert('Login successful! Redirecting to your dashboard...');
+          closeAuthModal();
+          window.open('user-dashboard.html', '_blank');
+        } else {
+          alert('Please fill in all fields.');
+        }
+      } else {
+        const name = $('#signupName').value;
+        const email = $('#signupEmail').value;
+        const password = $('#signupPassword').value;
+        const confirmPassword = $('#signupConfirm').value;
+        
+        if (!name || !email || !password || !confirmPassword) {
+          alert('Please fill in all fields.');
+          return;
+        }
+        
+        if (password !== confirmPassword) {
+          alert('Passwords do not match.');
+          return;
+        }
+        
+        if (password.length < 6) {
+          alert('Password must be at least 6 characters long.');
+          return;
+        }
+        
+        alert('Account created successfully! Welcome to Explore Mabini.');
+        closeAuthModal();
+        window.open('welcome.html', '_blank');
+      }
+    });
+  });
+})();
+
+// =========================
+// PARTICLE EFFECTS
+// =========================
+(function particles() {
+  const particlesContainer = safeGet('particles');
+  if (!particlesContainer) return;
+
+  function createParticles() {
+    const particleCount = 30;
+    
+    for (let i = 0; i < particleCount; i++) {
+      const particle = document.createElement("div");
+      particle.classList.add("particle");
+      
+      const size = Math.random() * 6 + 2;
+      const posX = Math.random() * 100;
+      const posY = Math.random() * 100;
+      const delay = Math.random() * 5;
+      const duration = Math.random() * 10 + 5;
+      
+      particle.style.width = `${size}px`;
+      particle.style.height = `${size}px`;
+      particle.style.left = `${posX}%`;
+      particle.style.top = `${posY}%`;
+      particle.style.animationDelay = `${delay}s`;
+      particle.style.animationDuration = `${duration}s`;
+      
+      particlesContainer.appendChild(particle);
+    }
+  }
+
+  createParticles();
+})();
+
+// =========================
+// MODAL SYSTEM
+// =========================
 (function modalSystem() {
   const modalBackdrop = safeGet('#modalBackdrop');
   if (!modalBackdrop) return;
+  
   const modal = modalBackdrop.querySelector('.modal');
   const modalClose = modalBackdrop.querySelector('.modal-close');
   const modalTitle = modalBackdrop.querySelector('#modalTitle');
@@ -477,105 +826,114 @@ function announce(text) { if (ariaStatus) { ariaStatus.textContent = text; } }
   const modalNext = modalBackdrop.querySelector('#modalNext');
 
   const slides = Array.from(document.querySelectorAll('.slide'));
-  let idx = 0;
+  let currentModalIndex = 0;
 
   function openForSlideId(id) {
     const slide = document.querySelector(`.slide[data-id="${id}"]`);
     if (!slide) return;
-    idx = slides.indexOf(slide);
+    
+    currentModalIndex = slides.indexOf(slide);
     const img = slide.querySelector('img');
     const title = slide.querySelector('h3') ? slide.querySelector('h3').textContent : (slide.getAttribute('aria-label') || '');
     const desc = slide.querySelector('.desc') ? slide.querySelector('.desc').textContent : '';
+    
     modalTitle.textContent = title;
     modalText.textContent = desc;
     modalSlide.innerHTML = img ? `<img src="${img.src}" alt="${img.alt || title}">` : '';
 
-    // set map link if present inside slide's anchor
     const anchor = slide.querySelector('a[href^="https://www.google.com/maps"]');
-    modalMap && (modalMap.href = anchor ? anchor.href : '#');
+    if (modalMap) {
+      modalMap.href = anchor ? anchor.href : '#';
+    }
 
     modalBackdrop.setAttribute('aria-hidden', 'false');
     modalBackdrop.style.display = 'flex';
     modalBackdrop.classList.add('open');
-    // trap focus
+    
     const focusables = modalBackdrop.querySelectorAll('a, button, [tabindex]:not([tabindex="-1"])');
     (focusables[0] || modalClose).focus();
     announce(`${title} opened`);
   }
 
-  // bind opening buttons
-  document.querySelectorAll('[data-open]').forEach(btn => {
+  $$('[data-open]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const id = btn.getAttribute('data-open');
       openForSlideId(id);
     });
   });
 
-  function close() {
+  function closeModal() {
     modalBackdrop.classList.remove('open');
     modalBackdrop.setAttribute('aria-hidden', 'true');
     modalBackdrop.style.display = 'none';
     announce('Modal closed');
   }
 
-  modalClose && modalClose.addEventListener('click', close);
+  if (modalClose) {
+    modalClose.addEventListener('click', closeModal);
+  }
 
   modalBackdrop.addEventListener('click', (e) => {
-    if (e.target === modalBackdrop) close();
+    if (e.target === modalBackdrop) closeModal();
   });
 
-  // keyboard nav
-  document.addEventListener('keydown', (e) => {
-    if (modalBackdrop.getAttribute('aria-hidden') === 'false') {
-      if (e.key === 'Escape') close();
-      if (e.key === 'ArrowRight') { navigate(1); }
-      if (e.key === 'ArrowLeft') { navigate(-1); }
-    }
-  });
-
-  modalNext && modalNext.addEventListener('click', () => navigate(1));
-
-  function navigate(dir = 1) {
-    idx = (idx + dir + slides.length) % slides.length;
-    const slide = slides[idx];
+  function navigateModal(dir = 1) {
+    currentModalIndex = (currentModalIndex + dir + slides.length) % slides.length;
+    const slide = slides[currentModalIndex];
     if (!slide) return;
+    
     const img = slide.querySelector('img');
     const title = slide.querySelector('h3') ? slide.querySelector('h3').textContent : '';
     const desc = slide.querySelector('.desc') ? slide.querySelector('.desc').textContent : '';
+    
     modalTitle.textContent = title;
     modalText.textContent = desc;
     modalSlide.innerHTML = img ? `<img src="${img.src}" alt="${img.alt || title}">` : '';
+    
     const anchor = slide.querySelector('a[href^="https://www.google.com/maps"]');
-    modalMap && (modalMap.href = anchor ? anchor.href : '#');
+    if (modalMap) {
+      modalMap.href = anchor ? anchor.href : '#';
+    }
     announce(`${title} opened`);
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (modalBackdrop.getAttribute('aria-hidden') === 'false') {
+      if (e.key === 'Escape') closeModal();
+      if (e.key === 'ArrowRight') navigateModal(1);
+      if (e.key === 'ArrowLeft') navigateModal(-1);
+    }
+  });
+
+  if (modalNext) {
+    modalNext.addEventListener('click', () => navigateModal(1));
   }
 })();
 
-/* =========================
-   KEYBOARD SHORTCUTS
-   - R: reset magnifiers to defaults
-   - Esc: close modal (handled already)
-   ========================= */
+// =========================
+// KEYBOARD SHORTCUTS
+// =========================
 (function shortcuts() {
   window.addEventListener('keydown', (e) => {
-    // ignore if typing in input
     const inField = /input|textarea|select/.test(document.activeElement.tagName.toLowerCase());
     if (inField) return;
 
     if (e.key.toLowerCase() === 'r') {
-      // default positions
       const defaults = [
         { id: 'magA', left: '12%', top: '60vh' },
         { id: 'magB', left: '70%', top: '62vh' },
         { id: 'magC', left: '42%', top: '58vh' },
         { id: 'magGuide', left: '50%', top: '60vh' }
       ];
+      
       defaults.forEach(d => {
         const el = document.getElementById(d.id);
         if (el) {
           el.style.left = d.left;
           el.style.top = d.top;
-          try { localStorage.removeItem(`pos_${d.id}`); } catch (err) {}
+          try { 
+            localStorage.removeItem(`pos_${d.id}`); 
+          } catch (err) {}
         }
       });
       announce('Magnifiers reset');
@@ -583,10 +941,10 @@ function announce(text) { if (ariaStatus) { ariaStatus.textContent = text; } }
   });
 })();
 
-/* =========================
-   Accessibility: focus outlines on keyboard use only
-   ========================= */
-(function focusOutline() {
+// =========================
+// ACCESSIBILITY FEATURES
+// =========================
+(function accessibility() {
   function handleFirstTab(e) {
     if (e.key === 'Tab') {
       document.documentElement.classList.add('user-is-tabbing');
@@ -594,26 +952,52 @@ function announce(text) { if (ariaStatus) { ariaStatus.textContent = text; } }
     }
   }
   window.addEventListener('keydown', handleFirstTab);
+
+  if (isReducedMotion) {
+    $$('.par-cloud, #mapBase').forEach(el => { 
+      if (el) el.style.transition = 'none'; 
+    });
+  }
 })();
 
-/* =========================
-   Graceful fallbacks & finalization
-   ========================= */
-(function finalize() {
-  // Hide custom pin if not supported or if small screens (mobile)
-  const pin = safeGet('#cursorPin');
-  if (pin && ('ontouchstart' in window || window.innerWidth < 720)) {
-    pin.style.display = 'none';
-  }
-
-  // If reduced motion, simplify animations
-  if (isReducedMotion) {
-    // remove heavy transforms
-    $$('.par-cloud, #mapBase').forEach(el => { if (el) el.style.transition = 'none'; });
-  }
-
-  // announce loaded
-  window.addEventListener('load', () => {
-    announce('Page content loaded');
+// =========================
+// SMOOTH SCROLL
+// =========================
+(function smoothScroll() {
+  $$('a[href^="#"]').forEach(link => {
+    link.addEventListener('click', e => {
+      const href = link.getAttribute('href');
+      if (href === '#') return;
+      
+      e.preventDefault();
+      const target = document.querySelector(href);
+      if (target) {
+        window.scrollTo({
+          top: target.offsetTop - 80,
+          behavior: "smooth"
+        });
+      }
+    });
   });
 })();
+
+// =========================
+// INITIALIZATION
+// =========================
+window.addEventListener('load', () => {
+  announce('Page content loaded');
+  
+  setTimeout(() => {
+    document.body.classList.add('loaded');
+  }, 100);
+});
+
+// =========================
+// RESPONSIVE BEHAVIOR
+// =========================
+window.addEventListener('resize', () => {
+  const sidebar = safeGet('#sidebar');
+  if (window.innerWidth > 768 && sidebar) {
+    sidebar.classList.remove('active');
+  }
+});
