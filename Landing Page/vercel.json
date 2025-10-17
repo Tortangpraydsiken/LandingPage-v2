@@ -1,9 +1,0 @@
-{
-  "rewrites": [
-    { "source": "/", "destination": "/index.html" },
-    { "source": "/places", "destination": "/places/places_to_visit.html" },
-    { "source": "/overview", "destination": "/overview/destination-overview.html" },
-    { "source": "/info", "destination": "/info/practical-info.html" }
-  ],
-  "cleanUrls": true
-}
